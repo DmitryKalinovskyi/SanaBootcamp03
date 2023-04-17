@@ -1,8 +1,114 @@
-﻿@{
+﻿@using TodoList.Models;
+@using System.Linq;
+@using TodoList.Data;
+
+@model TodoItemsViewModel
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
+<style>
+    ol{
+        list-style:none;
+
+        width: 800px;
+        overflow-y: auto;
+
+        height: 600px;
+    }
+   ol > li {
+       border: 1px solid #ced4da;
+
+       border-radius: 5px;
+       margin: 10px 0;
+
+
+   }
+
+   .delete{
+       border-radius: 3px;
+       
+   }
+</style>
+
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    
+    <h2 class="mb-3">Create new task</h2>
+    <form method="post" class="mb-5" asp-controller="Home" asp-action="CreateTodoTask">
+        <div class="mb-3 row">
+            <div class="col-12">
+                <input name= "task.Name" type="text" placeholder="Task..." class="form-control">
+                <span ></span>
+            </div>
+        </div>
+        <div class="mb-3 row">
+            <div class="col-4">
+                <select name="task.Category" class="form-select">
+                    <option value=""> Select category</option>
+
+                    @foreach(Category category in Model.Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+
+                </select>
+                <span></span>
+            </div>
+            <div class="col-4">
+                <input name="task.DueTo"type="datetime-local"  class="form-control">
+                <span></span>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Create new task</button>
+    </form>
+
+
+    <ol>
+        @if (Model != null)
+        {
+            @foreach (TodoTask todoTask in Model.TodoTasks)
+            {
+                <li>
+                    <form asp-action="Mark" asp-controller="Home" method="post" style="display:inline-block">
+                        <input name="taskMark.Id" type="hidden" value="@todoTask.Id">
+                        <input name="taskMark.IsCompleted" type="hidden" value="@((todoTask.IsCompleted == false).ToString())">
+
+                        <input type="checkbox" onchange="this.form.submit();" @if (todoTask.IsCompleted)
+                        {
+                            <text>checked</text>
+                        } >
+                    </form>
+                    
+
+                    @if(@todoTask.IsCompleted)
+                    {
+                        <span style="text-decoration: line-through">@todoTask.Name</span>
+                    }
+                    else{
+                        <span>@todoTask.Name</span>
+                    }
+
+                    @if (todoTask.Category != null && TodoRepository.CategoryDictionary.ContainsKey((int)(todoTask.Category)))
+                    {
+                       <span>
+                            (@TodoRepository.CategoryDictionary[(int)todoTask.Category])
+                    </span>
+                    }
+                        
+                    @if(todoTask.DueTo != null)
+                    {
+                        <span>
+                            DueTo: @(todoTask.DueTo.ToString())
+                        </span>
+                    }
+
+                    <form asp-controller="Home" asp-action="DeleteTodoTask" method="post" style="display:inline-block">
+                        <input name= "taskModel.Id" type="hidden" value="@todoTask.Id" />
+                        <button class="delete">&#10008;</button>
+                    </form>
+                </li>
+            }
+        }
+    </ol>
 </div>
